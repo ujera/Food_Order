@@ -15,11 +15,22 @@ def get_password_hash(password):
 def create_admin(email, password):
     connection=sqlite3.connect('food.db')
     password_hash = get_password_hash(password)
-    sql=f"INSERT INTO admin (email, password) VALUES ('{email}', '{password_hash}')"
     cursor=connection.cursor()
-    cursor.execute(sql)
-    connection.commit()
-    connection.close()
+    try:
+        cursor.execute("SELECT email FROM admin WHERE email = ?", (email,))
+        existing_admin = cursor.fetchone()
+
+        if existing_admin:
+            raise ValueError(f"Admin with email '{email}' already exists.")
+        else:
+            cursor.execute("INSERT INTO admin (email, password) VALUES (?, ?)", (email, password_hash))
+            connection.commit()
+            print(f"Admin '{email}' registered successfully.")
+    except sqlite3.IntegrityError:
+        print(f"Error: Admin with email '{email}' already exists.")
+        raise Exception(f"Admin with email '{email}' already exists.")
+    finally:
+        connection.close()
 
 def check_admin(email, password):
     connection = sqlite3.connect('food.db')
