@@ -54,3 +54,21 @@ def get_orders_for_product(product_id):
     orders_data = cursor.fetchall()
     connection.close()
     return orders_data
+
+def delete_food(food_id):
+    connection = sqlite3.connect('Food.db')
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM Food WHERE id = ?", (food_id,))
+    connection.commit()
+    connection.close()
+
+def update_food(food_id, name, description, price):
+    connection = sqlite3.connect('Food.db')
+    cursor = connection.cursor()
+    cursor.execute("""
+        UPDATE Food
+        SET name = ?, price = ?, description = ?
+        WHERE id = ?
+    """, (name, price, description, food_id))
+    connection.commit()
+    connection.close()
