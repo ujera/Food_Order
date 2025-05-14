@@ -203,4 +203,4 @@ def order_remove(order_id):
         return render_template('orders.html', error=str(e))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
