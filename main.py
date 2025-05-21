@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request,redirect,session,url_for, abort
-from user import create_user,get_user_by_email
+from user import create_user,get_user_by_email,update_user_password
 from food import get_foods,get_food_by_id,get_orders_for_product,create_food,delete_food,update_food
 from admin import get_admin_by_email
 import hashlib
@@ -53,13 +53,29 @@ def logout_page():
     session.clear()
     return redirect('/')
 
-@app.route('/user')
+@app.route('/user', methods=['GET', 'POST'])
 def user_page():
-    if 'user_role' in session:
+    if 'user_role' not in session:
+        return redirect('/login')
+
+    if request.method == 'POST':
+        # Get the form data
+        new_password = request.form['password']
+        user_id = session['user_id']
+
+        # Update the password if a new one is provided
+        if new_password:
+            hashed_password = hash_password(new_password)
+            update_user_password(user_id, hashed_password)
+
         return render_template('user.html',
                                user_email=session['user_email'],
-                               user_role=session['user_role']) 
-    return redirect('/login')
+                               user_role=session['user_role'],
+                               message="Password updated successfully!")
+
+    return render_template('user.html',
+                           user_email=session['user_email'],
+                           user_role=session['user_role'])
 
 @app.route('/register')
 def register_page():
@@ -73,7 +89,7 @@ def register_user():
     if not email or not password:
         return render_template('register.html', message='Please fill in all fields.')
     try:
-        create_user(email, password,'user')
+        create_user(email, password)
         return redirect('/login')
     except ValueError as e:
         return render_template('register.html', message=str(e))
@@ -85,7 +101,7 @@ def author_page():
     author_info = {
         'name': 'Mikheil',
         'surname': 'Ujerashvili',
-        'image': 'https://scontent.ftbs6-2.fna.fbcdn.net/v/t39.30808-1/427990862_3613669265574536_812782898407645130_n.jpg?stp=cp6_dst-jpg_s200x200_tt6&_nc_cat=102&ccb=1-7&_nc_sid=e99d92&_nc_ohc=WGxGjwFacF4Q7kNvwFFld0o&_nc_oc=AdkeX2hxwDhVgKb83G7qWJIVFFMI6vg39tY4RGIrf54JhuADSQ6I3NSOMAHgjogfPWY&_nc_zt=24&_nc_ht=scontent.ftbs6-2.fna&_nc_gid=mzbqNOO691Z22V7FKqqq5Q&oh=00_AfKmWpOyHcO_XGu_ekjbBDoC9z2HqXzOTIurPhgcsY7UpA&oe=682145FC'
+        'image': 'https://media.licdn.com/dms/image/v2/D4D03AQHq9yXqZV4aSA/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1712753510762?e=1752710400&v=beta&t=M7EZAn2rXCwUTuoGoi-jHafqBj3TUyHkCsbhGUaeOPA'
     }
     return render_template('author.html', author=author_info)
 

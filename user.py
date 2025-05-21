@@ -51,5 +51,13 @@ def get_user_by_email(email):
     conn.close()
     return user
 
+def update_user_password(user_id, new_password):
+    connection = sqlite3.connect('food.db')
+    cursor = connection.cursor()
+    sql = "UPDATE user SET password = ? WHERE id = ?"
+    cursor.execute(sql, (new_password, user_id))
+    connection.commit()
+    connection.close()
+
 
 
