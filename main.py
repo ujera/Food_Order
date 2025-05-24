@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request,redirect,session,url_for, abort
 from user import create_user,get_user_by_email,update_user_password
-from food import get_foods,get_food_by_id,get_orders_for_product,create_food,delete_food,update_food
+from food import get_foods,get_food_by_id,get_orders_for_product,create_food,delete_food,update_food,get_all_foods
 from admin import get_admin_by_email
 import hashlib
 from order import create_order,get_orders,get_order_by_id,delete_order
@@ -20,7 +20,11 @@ def check_password(stored_password, provided_password):
 @app.route('/')
 def index_page():
     foods = get_foods()
-    return render_template('index.html', foods=foods)
+
+    basket = session.get('basket', [])
+    basket_count = sum(item['quantity'] for item in basket)
+
+    return render_template("index.html", foods=foods, basket_count=basket_count)
 
 @app.route('/login')
 def login_page():
@@ -217,6 +221,51 @@ def order_remove(order_id):
         return redirect(url_for('orders_page'))
     except ValueError as e:
         return render_template('orders.html', error=str(e))
+    
+
+#basket------------------------------------
+
+@app.route('/basket/add/<int:food_id>', methods=['POST'])
+def add_to_basket(food_id):
+    food = get_food_by_id(food_id)
+    if not food:
+        return "Food not found"
+
+    basket = session.get('basket', [])
+
+    # Check if already in basket
+    for item in basket:
+        if item['id'] == food.id:
+            item['quantity'] += 1
+            break
+    else:
+        basket.append({
+            'id': food.id,
+            'name': food.name,
+            'price': float(food.price),
+            'quantity': 1
+        })
+
+    session['basket'] = basket
+    return redirect(url_for('index_page'))
+
+@app.route('/basket')
+def basket_page():
+    basket = session.get('basket', [])
+    total = sum(item['price'] * item['quantity'] for item in basket)
+    return render_template('basket.html', basket=basket, total=total)
+
+@app.route('/basket/clear', methods=['POST'])
+def clear_basket():
+    session.pop('basket', None)
+    return redirect(url_for('basket_page'))
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

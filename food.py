@@ -72,3 +72,10 @@ def update_food(food_id, name, description, price):
     """, (name, price, description, food_id))
     connection.commit()
     connection.close()
+def get_all_foods():
+    connection = sqlite3.connect('Food.db')
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM Food")
+    rows = cursor.fetchall()
+    connection.close()
+    return rows

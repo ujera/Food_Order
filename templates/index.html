@@ -108,6 +108,7 @@
             background-color: #0056b3;
         }
 
+
     </style>
 </head>
 <body>
@@ -133,6 +134,10 @@
         <div class="logined">{% if session.user_id %} 
           <a href="/user">Accaunt info</a>
           <a href="/logout">Logout</a>
+          <a href="{{ url_for('basket_page') }}">
+            Basket ({{ basket_count }})
+        </a>
+
         {% endif %}</div>
 
         
@@ -147,6 +152,10 @@
                             <p class="card-text">${{ food.price }}</p>
                             <a href="/order/{{ food.id }}" class="btn btn-primary">Order Now</a>
                             <a href="/food/{{ food.id }}" class="btn btn-secondary">Details</a>
+                            {% if session.user_id %}<form action="{{ url_for('add_to_basket', food_id=food.id) }}" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-success">Add to Basket</button>
+                            </form>{% endif %}
+
                             {% if session.user_role == 'admin' %}
                                 <a href="/product/edit/{{ food.id }}" class="btn btn-warning">Edit</a>
                                 <a href="/product/delete/{{ food.id }}" class="btn btn-danger">Delete</a>
